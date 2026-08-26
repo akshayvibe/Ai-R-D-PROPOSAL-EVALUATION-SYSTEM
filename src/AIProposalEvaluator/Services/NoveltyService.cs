@@ -57,4 +57,44 @@ public class NoveltyService : INoveltyService
             _pastProjects.Count);
     }
 
+
+    public (double NoveltyScore, List<SimilarProject> SimilarProjects) Analyze(string proposalText)
+    {
+        if (string.IsNullOrWhiteSpace(proposalText) || _pastProjects.Count == 0)
+        {
+            return (50.0, new List<SimilarProject>());
+        }
+
+        var proposalTokens = Tokenize(proposalText);
+        var similarities = new List<(int Index, double Score)>();
+
+        for (int i = 0; i < _pastProjects.Count; i++)
+        {
+            var pastTokens = Tokenize(_pastProjects[i].Text);
+            var sim = CosineSimilarity(proposalTokens, pastTokens);
+            similarities.Add((i, sim));
+        }
+
+        var top = similarities
+            .OrderByDescending(x => x.Score)
+            .Take(5)
+            .ToList();
+
+        var maxSim = top.Count > 0 ? top[0].Score : 0.0;
+
+        var noveltyScore = Math.Clamp(
+            (1.0 - maxSim) * 100.0,
+            0.0,
+            100.0);
+
+        var results = top.Select(t => new SimilarProject
+        {
+            Project = _pastProjects[t.Index].Project,
+            Similarity = Math.Round(t.Score, 4),
+            Url = _pastProjects[t.Index].Url
+        }).ToList();
+
+        return (Math.Round(noveltyScore, 2), results);
+    }
+
 }
