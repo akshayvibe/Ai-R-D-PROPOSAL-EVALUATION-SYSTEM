@@ -96,4 +96,36 @@ public class MlEvaluationService : IMlEvaluationService
         };
     }
 
+
+    public ShapResult GetShapLikeValues(
+        double novelty,
+        double finance,
+        double technical,
+        double budget)
+    {
+        double n = Math.Clamp(novelty / 100.0, 0, 1);
+        double f = Math.Clamp(finance / 100.0, 0, 1);
+        double t = Math.Clamp(technical / 100.0, 0, 1);
+        double b = Math.Clamp(1.0 - (budget / 50_000_000.0), 0, 1);
+
+        double baseline = 68.0;
+
+        double contribNovelty = (n - 0.5) * 42.0;
+        double contribFinance = (f - 0.5) * 28.0;
+        double contribTech = (t - 0.5) * 20.0;
+        double contribBudget = (b - 0.5) * 10.0;
+
+        return new ShapResult
+        {
+            Baseline = baseline,
+            Contributions = new Dictionary<string, double>
+            {
+                ["Novelty Score"] = Math.Round(contribNovelty, 2),
+                ["Financial Compliance"] = Math.Round(contribFinance, 2),
+                ["Technical Feasibility"] = Math.Round(contribTech, 2),
+                ["Budget Efficiency"] = Math.Round(contribBudget, 2)
+            }
+        };
+    }
+
 }
