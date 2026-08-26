@@ -126,4 +126,34 @@ public class NoveltyService : INoveltyService
         return tf;
     }
 
+
+    private static double CosineSimilarity(
+        Dictionary<string, double> a,
+        Dictionary<string, double> b)
+    {
+        if (a.Count == 0 || b.Count == 0)
+            return 0.0;
+
+        double dot = 0;
+        double magA = 0;
+        double magB = 0;
+
+        var allKeys = a.Keys.Union(b.Keys);
+
+        foreach (var k in allKeys)
+        {
+            a.TryGetValue(k, out var va);
+            b.TryGetValue(k, out var vb);
+
+            dot += va * vb;
+            magA += va * va;
+            magB += vb * vb;
+        }
+
+        if (magA == 0 || magB == 0)
+            return 0.0;
+
+        return dot / (Math.Sqrt(magA) * Math.Sqrt(magB));
+    }
+
 }
