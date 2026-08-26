@@ -97,4 +97,33 @@ public class NoveltyService : INoveltyService
         return (Math.Round(noveltyScore, 2), results);
     }
 
+
+    private static Dictionary<string, double> Tokenize(string text)
+    {
+        var tokens = Regex.Split(text.ToLowerInvariant(), @"[^a-z0-9]+")
+            .Where(t => t.Length > 2)
+            .Where(t => !StopWords.Contains(t))
+            .ToList();
+
+        var tf = new Dictionary<string, double>();
+
+        foreach (var t in tokens)
+        {
+            if (!tf.ContainsKey(t))
+                tf[t] = 0;
+
+            tf[t]++;
+        }
+
+        var total = tokens.Count;
+
+        if (total == 0)
+            return tf;
+
+        foreach (var key in tf.Keys.ToList())
+            tf[key] = tf[key] / total;
+
+        return tf;
+    }
+
 }
