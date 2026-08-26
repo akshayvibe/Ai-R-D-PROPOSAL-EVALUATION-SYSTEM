@@ -17,4 +17,14 @@ public interface IMlEvaluationService
 /// </summary>
 public class MlEvaluationService : IMlEvaluationService
 {
+    private readonly Random _rng = new(42);
+
+    // Feature importances (mirrors typical RF output from the original tiny dataset)
+    private static readonly Dictionary<string, double> FeatureImportances = new()
+    {
+        ["Novelty"] = 0.42,
+        ["Financial Compliance"] = 0.28,
+        ["Technical Feasibility"] = 0.20,
+        ["Budget Efficiency"] = 0.10
+    };
 }
