@@ -156,4 +156,16 @@ public class NoveltyService : INoveltyService
         return dot / (Math.Sqrt(magA) * Math.Sqrt(magB));
     }
 
+
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", "her", "was", "one", "our",
+        "out", "has", "have", "been", "from", "they", "with", "this", "that", "will", "your", "what",
+        "when", "make", "like", "time", "just", "know", "take", "into", "year", "good", "some",
+        "could", "them", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
+        "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even",
+        "new", "want", "because", "any", "these", "give", "day", "most", "us", "is", "of", "to", "in",
+        "a", "on", "as", "at", "by", "an", "be", "or", "it", "if", "do", "so", "we", "he", "she"
+    };
+
 }
