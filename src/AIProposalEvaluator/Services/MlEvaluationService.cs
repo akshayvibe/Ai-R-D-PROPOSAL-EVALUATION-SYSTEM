@@ -128,4 +128,32 @@ public class MlEvaluationService : IMlEvaluationService
         };
     }
 
+
+    public Dictionary<string, double> GetFeatureImportance() =>
+        new(FeatureImportances);
+
+    public List<string> GenerateExplanation(double novelty, double finance, double technical)
+    {
+        var explanation = new List<string>();
+
+        if (novelty > 80)
+            explanation.Add("The proposal demonstrates high novelty compared to past and ongoing projects.");
+        else if (novelty > 55)
+            explanation.Add("The proposal shows moderate novelty with some similarities to existing work.");
+        else
+            explanation.Add("The proposal has relatively low novelty; several closely related prior projects exist.");
+
+        if (finance < 70)
+            explanation.Add("The requested budget is relatively high compared to expected innovation impact, increasing financial risk.");
+        else
+            explanation.Add("The budget is well-aligned with the proposed innovation scope and expected outcomes.");
+
+        if (technical >= 75)
+            explanation.Add("The technical approach appears feasible and well-structured.");
+        else
+            explanation.Add("The technical approach may require further clarification or validation.");
+
+        return explanation;
+    }
+
 }
