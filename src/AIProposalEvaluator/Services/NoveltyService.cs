@@ -11,4 +11,11 @@ public interface INoveltyService
 
 public class NoveltyService : INoveltyService
 {
+    private List<(string Project, string Url, string Text)> _pastProjects = new();
+    private readonly ILogger<NoveltyService> _logger;
+
+    public NoveltyService(ILogger<NoveltyService> logger)
+    {
+        _logger = logger;
+    }
 }
