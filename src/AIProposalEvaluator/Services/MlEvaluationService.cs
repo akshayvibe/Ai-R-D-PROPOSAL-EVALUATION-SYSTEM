@@ -61,4 +61,39 @@ public class MlEvaluationService : IMlEvaluationService
         return predictions;
     }
 
+
+    public ConfidenceBand EstimateConfidenceBand(IEnumerable<double> predictions)
+    {
+        var preds = predictions.ToArray();
+
+        if (preds.Length == 0)
+        {
+            return new ConfidenceBand
+            {
+                Mean = 50,
+                Lower = 40,
+                Upper = 60,
+                Std = 5,
+                Confidence = 70
+            };
+        }
+
+        double mean = preds.Average();
+        double variance = preds.Select(p => (p - mean) * (p - mean)).Average();
+        double std = Math.Sqrt(variance);
+
+        double lower = Math.Max(0.0, mean - 1.96 * std);
+        double upper = Math.Min(100.0, mean + 1.96 * std);
+        double confidence = Math.Clamp(100.0 - (std * 4.0), 0.0, 100.0);
+
+        return new ConfidenceBand
+        {
+            Mean = Math.Round(mean, 2),
+            Lower = Math.Round(lower, 2),
+            Upper = Math.Round(upper, 2),
+            Std = Math.Round(std, 2),
+            Confidence = Math.Round(confidence, 2)
+        };
+    }
+
 }
