@@ -57,4 +57,115 @@ public class NoveltyService : INoveltyService
             _pastProjects.Count);
     }
 
+
+    public (double NoveltyScore, List<SimilarProject> SimilarProjects) Analyze(string proposalText)
+    {
+        if (string.IsNullOrWhiteSpace(proposalText) || _pastProjects.Count == 0)
+        {
+            return (50.0, new List<SimilarProject>());
+        }
+
+        var proposalTokens = Tokenize(proposalText);
+        var similarities = new List<(int Index, double Score)>();
+
+        for (int i = 0; i < _pastProjects.Count; i++)
+        {
+            var pastTokens = Tokenize(_pastProjects[i].Text);
+            var sim = CosineSimilarity(proposalTokens, pastTokens);
+            similarities.Add((i, sim));
+        }
+
+        var top = similarities
+            .OrderByDescending(x => x.Score)
+            .Take(5)
+            .ToList();
+
+        var maxSim = top.Count > 0 ? top[0].Score : 0.0;
+
+        var noveltyScore = Math.Clamp(
+            (1.0 - maxSim) * 100.0,
+            0.0,
+            100.0);
+
+        var results = top.Select(t => new SimilarProject
+        {
+            Project = _pastProjects[t.Index].Project,
+            Similarity = Math.Round(t.Score, 4),
+            Url = _pastProjects[t.Index].Url
+        }).ToList();
+
+        return (Math.Round(noveltyScore, 2), results);
+    }
+
+
+    private static Dictionary<string, double> Tokenize(string text)
+    {
+        var tokens = Regex.Split(text.ToLowerInvariant(), @"[^a-z0-9]+")
+            .Where(t => t.Length > 2)
+            .Where(t => !StopWords.Contains(t))
+            .ToList();
+
+        var tf = new Dictionary<string, double>();
+
+        foreach (var t in tokens)
+        {
+            if (!tf.ContainsKey(t))
+                tf[t] = 0;
+
+            tf[t]++;
+        }
+
+        var total = tokens.Count;
+
+        if (total == 0)
+            return tf;
+
+        foreach (var key in tf.Keys.ToList())
+            tf[key] = tf[key] / total;
+
+        return tf;
+    }
+
+
+    private static double CosineSimilarity(
+        Dictionary<string, double> a,
+        Dictionary<string, double> b)
+    {
+        if (a.Count == 0 || b.Count == 0)
+            return 0.0;
+
+        double dot = 0;
+        double magA = 0;
+        double magB = 0;
+
+        var allKeys = a.Keys.Union(b.Keys);
+
+        foreach (var k in allKeys)
+        {
+            a.TryGetValue(k, out var va);
+            b.TryGetValue(k, out var vb);
+
+            dot += va * vb;
+            magA += va * va;
+            magB += vb * vb;
+        }
+
+        if (magA == 0 || magB == 0)
+            return 0.0;
+
+        return dot / (Math.Sqrt(magA) * Math.Sqrt(magB));
+    }
+
+
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", "her", "was", "one", "our",
+        "out", "has", "have", "been", "from", "they", "with", "this", "that", "will", "your", "what",
+        "when", "make", "like", "time", "just", "know", "take", "into", "year", "good", "some",
+        "could", "them", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
+        "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even",
+        "new", "want", "because", "any", "these", "give", "day", "most", "us", "is", "of", "to", "in",
+        "a", "on", "as", "at", "by", "an", "be", "or", "it", "if", "do", "so", "we", "he", "she"
+    };
+
 }
